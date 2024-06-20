@@ -18,12 +18,16 @@ Route::get('/user', function (Request $request) {
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
+Route::get('books/search', [BookController::class, 'search']);
+
 Route::middleware('auth:api')->group(function () {
     Route::get('books', [BookController::class, 'index']);
     Route::get('books/{id}', [BookController::class, 'show']);
     Route::post('books', [BookController::class, 'store'])->middleware('can:admin-only');
     Route::put('books/{id}', [BookController::class, 'update'])->middleware('can:admin-only');
     Route::delete('books/{id}', [BookController::class, 'destroy'])->middleware('can:admin-only');
+
+    // Route::get('books/search', [BookController::class, 'search']);
 
     Route::get('authors', [AuthorController::class, 'index']);
     Route::get('authors/{id}', [AuthorController::class, 'show']);

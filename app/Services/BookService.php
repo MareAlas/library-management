@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Book;
+use Illuminate\Support\Facades\Log;
 
 class BookService
 {
@@ -35,5 +36,26 @@ class BookService
     public function deleteBook($book)
     {
         $book->delete();
+    }
+
+    public function searchBooks($title = null, $author = null, $published_year = null, $perPage = 10)
+    {
+        $query = Book::query();
+    
+        if ($title) {
+            $query->where('title', 'like', '%' . $title . '%');
+        }
+    
+        if ($author) {
+            $query->whereHas('authors', function ($query) use ($author) {
+                $query->where('name', 'like', '%' . $author . '%');
+            });
+        }
+
+        if ($published_year) {
+            $query->where('published_year', '=', $published_year);
+        }
+    
+        return $query->paginate($perPage);
     }
 }

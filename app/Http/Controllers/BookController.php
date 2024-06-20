@@ -71,4 +71,16 @@ class BookController extends Controller
 
         return response()->json(null, 204);
     }
+
+    public function search(Request $request)
+    {
+        $title = $request->input('title');
+        $author = $request->input('author'); 
+        $published_year = $request->input('published_year');
+        $perPage = $request->input('perPage', 10);
+    
+        $books = $this->bookService->searchBooks($title, $author, $published_year, $perPage);
+    
+        return response()->json($books, 200);
+    }
 }
