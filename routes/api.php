@@ -27,8 +27,6 @@ Route::middleware('auth:api')->group(function () {
     Route::put('books/{id}', [BookController::class, 'update'])->middleware('can:admin-only');
     Route::delete('books/{id}', [BookController::class, 'destroy'])->middleware('can:admin-only');
 
-    // Route::get('books/search', [BookController::class, 'search']);
-
     Route::get('authors', [AuthorController::class, 'index']);
     Route::get('authors/{id}', [AuthorController::class, 'show']);
     Route::post('authors', [AuthorController::class, 'store'])->middleware('can:admin-only');
@@ -45,13 +43,3 @@ Route::middleware('auth:api')->group(function () {
     Route::get('reservations/{id}', [ReservationController::class, 'show'])->middleware('can:admin-only');
     Route::post('reservations', [ReservationController::class, 'store'])->middleware('can:member-only');
 });
-
-/*
-Route::middleware('auth:api')->group(function () {
-    Route::apiResource('books', BookController::class);
-    Route::apiResource('authors', AuthorController::class);
-    Route::apiResource('users', UserController::class);
-    Route::apiResource('members', MemberController::class);
-    Route::apiResource('reservations', ReservationController::class);
-});
-*/
