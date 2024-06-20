@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use Illuminate\Http\Request;
+use App\Services\BookService;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Gate;
 use App\Http\Requests\StoreBookRequest;
@@ -11,14 +12,21 @@ use App\Http\Requests\UpdateBookRequest;
 
 class BookController extends Controller
 {
+    protected $bookService;
+
+    public function __construct(BookService $bookService)
+    {
+        $this->bookService = $bookService;
+    }
+    
     public function index()
     {
-        return response()->json(Book::all(), 200);
+        return response()->json($this->bookService->getAllBooks(), 200);
     }
 
     public function show($id)
     {
-        $book = Book::find($id);
+        $book = $this->bookService->getBookById($id);
 
         if (is_null($book)) {
             return response()->json(['message' => 'Book not found'], 404);
@@ -29,22 +37,20 @@ class BookController extends Controller
 
     public function store(StoreBookRequest $request)
     {
-        $book = Book::create($request->validated());
-        $book->authors()->sync($request->authors);
+        $book = $this->bookService->createBook($request->validated());
 
         return response()->json($book, 201);
     }
 
     public function update(UpdateBookRequest $request, $id)
     {
-        $book = Book::find($id);
+        $book = $this->bookService->getBookById($id);
 
         if (is_null($book)) {
             return response()->json(['message' => 'Book not found'], 404);
         }
 
-        $book->update($request->validated());
-        $book->authors()->sync($request->authors);
+        $updatedBook = $this->bookService->updateBook($book, $request->validated());
 
         return response()->json($book, 200);
     }
@@ -55,13 +61,13 @@ class BookController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $book = Book::find($id);
+        $book = $this->bookService->getBookById($id);
 
         if (is_null($book)) {
             return response()->json(['message' => 'Book not found'], 404);
         }
 
-        $book->delete();
+        $this->bookService->deleteBook($book);
 
         return response()->json(null, 204);
     }

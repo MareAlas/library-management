@@ -5,20 +5,28 @@ namespace App\Http\Controllers;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Services\ReservationService;
 use Illuminate\Support\Facades\Gate;
 use App\Http\Requests\StoreReservationRequest;
 use App\Http\Requests\UpdateReservationRequest;
 
 class ReservationController extends Controller
 {
+    protected $reservationService;
+
+    public function __construct(ReservationService $reservationService)
+    {
+        $this->reservationService = $reservationService;
+    }
+    
     public function index()
     {
-        return response()->json(Reservation::all(), 200);
+        return response()->json($this->reservationService->getAllReservations(), 200);
     }
 
     public function show($id)
     {
-        $reservation = Reservation::find($id);
+        $reservation = $this->reservationService->getReservationById($id);
 
         if (is_null($reservation)) {
             return response()->json(['message' => 'Reservation not found'], 404);
@@ -29,26 +37,31 @@ class ReservationController extends Controller
 
     public function store(StoreReservationRequest $request)
     {
-        $reservation = Reservation::create([
-            'book_id' => $request->book_id,
-            'member_id' => auth()->user()->member->id,
-            'reserved_at' => now(),
-        ]);
+        $user = auth()->user();
+        if (!$user || $user->role !== 'member') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $reservation = $this->reservationService->createReservation($request->validated(), $user);
 
         return response()->json($reservation, 201);
     }
 
     public function update(UpdateReservationRequest $request, $id)
     {
-        $reservation = Reservation::find($id);
+        if (Gate::denies('admin-only')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $reservation = $this->reservationService->getReservationById($id);
 
         if (is_null($reservation)) {
             return response()->json(['message' => 'Reservation not found'], 404);
         }
 
-        $reservation->update($request->validated());
+        $updatedReservation = $this->reservationService->updateReservation($reservation, $request->validated());
 
-        return response()->json($reservation, 200);
+        return response()->json($updatedReservation, 200);
     }
 
     public function destroy($id)
@@ -57,13 +70,13 @@ class ReservationController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $reservation = Reservation::find($id);
+        $reservation = $this->reservationService->getReservationById($id);
 
         if (is_null($reservation)) {
             return response()->json(['message' => 'Reservation not found'], 404);
         }
 
-        $reservation->delete();
+        $this->reservationService->deleteReservation($reservation);
 
         return response()->json(null, 204);
     }

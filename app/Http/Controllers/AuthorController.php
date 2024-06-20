@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Author;
 use Illuminate\Http\Request;
+use App\Services\AuthorService;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Gate;
 use App\Http\Requests\StoreAuthorRequest;
@@ -11,14 +12,21 @@ use App\Http\Requests\UpdateAuthorRequest;
 
 class AuthorController extends Controller
 {
+    protected $authorService;
+
+    public function __construct(AuthorService $authorService)
+    {
+        $this->authorService = $authorService;
+    }
+    
     public function index()
     {
-        return response()->json(Author::all(), 200);
+        return response()->json($this->authorService->getAllAuthors(), 200);
     }
 
     public function show($id)
     {
-        $author = Author::find($id);
+        $author = $this->authorService->getAuthorById($id);
 
         if (is_null($author)) {
             return response()->json(['message' => 'Author not found'], 404);
@@ -29,20 +37,20 @@ class AuthorController extends Controller
 
     public function store(StoreAuthorRequest $request)
     {
-        $author = Author::create($request->validated());
+        $author = $this->authorService->createAuthor($request->validated());
 
         return response()->json($author, 201);
     }
 
     public function update(UpdateAuthorRequest $request, $id)
     {
-        $author = Author::find($id);
+        $author = $this->authorService->getAuthorById($id);
 
         if (is_null($author)) {
             return response()->json(['message' => 'Author not found'], 404);
         }
 
-        $author->update($request->validated());
+        $updatedAuthor = $this->authorService->updateAuthor($author, $request->validated());
 
         return response()->json($author, 200);
     }
@@ -53,13 +61,13 @@ class AuthorController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $author = Author::find($id);
+        $author = $this->authorService->getAuthorById($id);
 
         if (is_null($author)) {
             return response()->json(['message' => 'Author not found'], 404);
         }
 
-        $author->delete();
+        $this->authorService->deleteAuthor($author);
 
         return response()->json(null, 204);
     }
