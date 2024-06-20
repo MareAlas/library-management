@@ -4,12 +4,15 @@ namespace App\Services;
 
 use App\Models\Book;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class BookService
 {
     public function getAllBooks($perPage=10)
     {
-        return Book::paginate($perPage);
+        return Cache::remember('all_books', 3600, function () use ($perPage) {
+            return Book::with('authors')->paginate($perPage);
+        });
     }
 
     public function getBookById($id)

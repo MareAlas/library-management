@@ -3,12 +3,15 @@
 namespace App\Services;
 
 use App\Models\Author;
+use Illuminate\Support\Facades\Cache;
 
 class AuthorService
 {
     public function getAllAuthors($perPage = 10)
     {
-        return Author::paginate($perPage);
+        return Cache::remember('all_authors', 3600, function () use ($perPage) {
+            return Author::with('books')->paginate($perPage);
+        });
     }
 
     public function getAuthorById($id)
