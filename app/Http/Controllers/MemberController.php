@@ -35,9 +35,21 @@ class MemberController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:members',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $member = Member::create($validatedData);
+        $user = User::create([
+            'name' => $validatedData['name'],
+            'email' => $validatedData['email'],
+            'password' => bcrypt($validatedData['password']),
+            'role' => 'member',
+        ]);
+
+        $member = Member::create([
+            'user_id' => $user->id,
+            'name' => $validatedData['name'],
+            'email' => $validatedData['email'],
+        ]);
 
         return response()->json($member, 201);
     }

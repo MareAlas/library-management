@@ -29,11 +29,18 @@ class ReservationController extends Controller
     {
         $validatedData = $request->validate([
             'book_id' => 'required|exists:books,id',
-            'member_id' => 'required|exists:members,id',
-            'reserved_at' => 'required|date',
         ]);
+    
+        $user = auth()->user();
+        if (!$user || $user->role !== 'member') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
 
-        $reservation = Reservation::create($validatedData);
+        $reservation = Reservation::create([
+            'book_id' => $validatedData['book_id'],
+            'member_id' => $user->member->id,
+            'reserved_at' => now(),
+        ]);
 
         return response()->json($reservation, 201);
     }

@@ -34,6 +34,8 @@ Route::middleware('auth:api')->group(function () {
     Route::get('members', [MemberController::class, 'index'])->middleware('can:admin-only');
     Route::get('members/{id}', [MemberController::class, 'show'])->middleware('can:admin-only');
     Route::post('members', [MemberController::class, 'store'])->middleware('can:admin-only');
+    Route::put('members/{id}', [MemberController::class, 'update'])->middleware('can:admin-only');
+    Route::delete('members/{id}', [MemberController::class, 'destroy'])->middleware('can:admin-only');
 
     Route::get('reservations', [ReservationController::class, 'index'])->middleware('can:admin-only');
     Route::get('reservations/{id}', [ReservationController::class, 'show'])->middleware('can:admin-only');
