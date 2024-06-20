@@ -6,6 +6,8 @@ use App\Models\Reservation;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Gate;
+use App\Http\Requests\StoreReservationRequest;
+use App\Http\Requests\UpdateReservationRequest;
 
 class ReservationController extends Controller
 {
@@ -25,45 +27,26 @@ class ReservationController extends Controller
         return response()->json($reservation, 200);
     }
 
-    public function store(Request $request)
+    public function store(StoreReservationRequest $request)
     {
-        $validatedData = $request->validate([
-            'book_id' => 'required|exists:books,id',
-        ]);
-    
-        $user = auth()->user();
-        if (!$user || $user->role !== 'member') {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
         $reservation = Reservation::create([
-            'book_id' => $validatedData['book_id'],
-            'member_id' => $user->member->id,
+            'book_id' => $request->book_id,
+            'member_id' => auth()->user()->member->id,
             'reserved_at' => now(),
         ]);
 
         return response()->json($reservation, 201);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateReservationRequest $request, $id)
     {
-        if (Gate::denies('admin-only')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
         $reservation = Reservation::find($id);
 
         if (is_null($reservation)) {
             return response()->json(['message' => 'Reservation not found'], 404);
         }
 
-        $validatedData = $request->validate([
-            'book_id' => 'required|exists:books,id',
-            'member_id' => 'required|exists:members,id',
-            'reserved_at' => 'required|date',
-        ]);
-
-        $reservation->update($validatedData);
+        $reservation->update($request->validated());
 
         return response()->json($reservation, 200);
     }

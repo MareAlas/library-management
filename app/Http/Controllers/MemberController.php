@@ -7,6 +7,8 @@ use App\Models\Member;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Gate;
+use App\Http\Requests\StoreMemberRequest;
+use App\Http\Requests\UpdateMemberRequest;
 
 class MemberController extends Controller
 {
@@ -26,17 +28,9 @@ class MemberController extends Controller
         return response()->json($member, 200);
     }
 
-    public function store(Request $request)
+    public function store(StoreMemberRequest $request)
     {
-        if (Gate::denies('admin-only')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:members',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
+        $validatedData = $request->validated();
 
         $user = User::create([
             'name' => $validatedData['name'],
@@ -48,33 +42,24 @@ class MemberController extends Controller
         $member = Member::create([
             'user_id' => $user->id,
             'name' => $validatedData['name'],
-            'email' => $validatedData['email'],
         ]);
 
         return response()->json($member, 201);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateMemberRequest $request, $id)
     {
-        if (Gate::denies('admin-only')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
         $member = Member::find($id);
 
         if (is_null($member)) {
             return response()->json(['message' => 'Member not found'], 404);
         }
 
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:members,email,' . $id,
-        ]);
-
-        $member->update($validatedData);
+        $member->update($request->validated());
 
         return response()->json($member, 200);
     }
+
 
     public function destroy($id)
     {

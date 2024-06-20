@@ -6,6 +6,8 @@ use App\Models\Author;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Gate;
+use App\Http\Requests\StoreAuthorRequest;
+use App\Http\Requests\UpdateAuthorRequest;
 
 class AuthorController extends Controller
 {
@@ -25,40 +27,22 @@ class AuthorController extends Controller
         return response()->json($author, 200);
     }
 
-    public function store(Request $request)
+    public function store(StoreAuthorRequest $request)
     {
-        if (Gate::denies('admin-only')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'biography' => 'nullable|string',
-        ]);
-
-        $author = Author::create($validatedData);
+        $author = Author::create($request->validated());
 
         return response()->json($author, 201);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateAuthorRequest $request, $id)
     {
-        if (Gate::denies('admin-only')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
         $author = Author::find($id);
 
         if (is_null($author)) {
             return response()->json(['message' => 'Author not found'], 404);
         }
 
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'biography' => 'nullable|string',
-        ]);
-
-        $author->update($validatedData);
+        $author->update($request->validated());
 
         return response()->json($author, 200);
     }

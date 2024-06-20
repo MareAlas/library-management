@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Gate;
+use App\Http\Requests\StoreBookRequest;
+use App\Http\Requests\UpdateBookRequest;
 
 class BookController extends Controller
 {
@@ -25,47 +27,23 @@ class BookController extends Controller
         return response()->json($book, 200);
     }
 
-    public function store(Request $request)
+    public function store(StoreBookRequest $request)
     {
-        if (Gate::denies('admin-only')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        $validatedData = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'published_year' => 'nullable|integer',
-            'authors' => 'required|array',
-            'authors.*' => 'integer|exists:authors,id',
-        ]);
-
-        $book = Book::create($validatedData);
+        $book = Book::create($request->validated());
         $book->authors()->sync($request->authors);
 
         return response()->json($book, 201);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateBookRequest $request, $id)
     {
-        if (Gate::denies('admin-only')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
         $book = Book::find($id);
 
         if (is_null($book)) {
             return response()->json(['message' => 'Book not found'], 404);
         }
 
-        $validatedData = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'published_year' => 'nullable|integer',
-            'authors' => 'required|array',
-            'authors.*' => 'integer|exists:authors,id',
-        ]);
-
-        $book->update($validatedData);
+        $book->update($request->validated());
         $book->authors()->sync($request->authors);
 
         return response()->json($book, 200);
