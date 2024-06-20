@@ -6,9 +6,9 @@ use App\Models\Author;
 
 class AuthorService
 {
-    public function getAllAuthors()
+    public function getAllAuthors($perPage = 10)
     {
-        return Author::all();
+        return Author::paginate($perPage);
     }
 
     public function getAuthorById($id)

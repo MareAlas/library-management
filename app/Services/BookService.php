@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\Log;
 
 class BookService
 {
-    public function getAllBooks()
+    public function getAllBooks($perPage=10)
     {
-        return Book::all();
+        return Book::paginate($perPage);
     }
 
     public function getBookById($id)

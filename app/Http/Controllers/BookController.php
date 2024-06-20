@@ -21,7 +21,9 @@ class BookController extends Controller
     
     public function index()
     {
-        return response()->json($this->bookService->getAllBooks(), 200);
+        $books = $this->bookService->getAllBooks();
+
+        return response()->json($books, 200);
     }
 
     public function show($id)
